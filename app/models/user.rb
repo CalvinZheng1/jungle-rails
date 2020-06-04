@@ -1,18 +1,18 @@
 class User < ActiveRecord::Base
   has_secure_password
 
-  before_save :normalize_email
-
-  validates :first_name, :last_name, :email, :password, :password_confirmation, presence: true
+  validates :name, :email, :password, :password_confirmation, presence: true
   validates :email, uniqueness: { case_sensitive: false }
-  validates :password, length: { minimum: 6 }
+  validates :email, format: { without: /\s/, message: "must contain no spaces" }
+  validates :password, length: { minimum: 3 }
 
   def self.authenticate_with_credentials(email, password)
     user = User.find_by_email(email.downcase.strip)
-    user.authenticate(password) ? user : nil;
+    if user && user.authenticate(password)
+      @user = user
+    else
+      @user = nil
+    end
   end
 
-  def normalize_email
-    self.email = self.email.downcase.strip
-  end
 end
