@@ -2,103 +2,50 @@ require 'rails_helper'
 
 RSpec.describe User, type: :model do
   describe 'Validations' do
-    describe 'presence' do
-      subject {
-        described_class.new(first_name: "Anything", last_name: "Schmidt", email: "test@example.com", password: "password", password_confirmation: "password")
-      }
 
-      it "is valid with valid attributes" do
-        expect(subject).to be_valid
-      end
-
-      it "is not valid without a first_name" do
-        subject.first_name = nil
-        expect(subject).to_not be_valid
-      end
-
-      it "is not valid without a last_name" do
-        subject.last_name = nil
-        expect(subject).to_not be_valid
-      end
-
-      it "is not valid without an email" do
-        subject.email = nil
-        expect(subject).to_not be_valid
-      end
-
-      it "is not valid without a password" do
-        subject.password = nil
-        expect(subject).to_not be_valid
-      end
-
-      it "is not valid without a password confirmation" do
-        subject.password_confirmation = nil
-        expect(subject).to_not be_valid
-      end
+    before(:each) do
+      @user = User.new(name: "Amanda", email: "hello@gmail.com", password: "test", password_confirmation: "test")
     end
 
-    describe 'password' do
-      it 'is not valid if password and password confirmation do not match' do
-        user = User.new(first_name: "Anything", last_name: "Schmidt", email: "test@example.com", password: "password", password_confirmation: "badmatch")
-
-        expect(user).to_not be_valid
-      end
-
-      it 'is not valid if email is unique' do
-        user1 = User.create(first_name: "Anything", last_name: "Schmidt", email: "test@example.com", password: "password", password_confirmation: "password")
-
-        user2 = User.new(first_name: "Anything2", last_name: "Schmidt2", email: "test@example.com", password: "password", password_confirmation: "password")
-
-        expect(user2).to_not be_valid
-      end
-
-      it 'should consider uniqueness as case-insensitive' do
-        user1 = User.create(first_name: "Anything", last_name: "Schmidt", email: "test@example.com", password: "password", password_confirmation: "password")
-
-        user2 = User.new(first_name: "Anything2", last_name: "Schmidt2", email: "TEST@example.com", password: "password", password_confirmation: "password")
-
-        expect(user2).to_not be_valid
-      end
-
-      it 'should not be valid if passwords are shorter than 6 characters' do
-        user = User.new(first_name: "Anything", last_name: "Schmidt", email: "test@example.com", password: "pass", password_confirmation: "pass")
-
-        expect(user).to_not be_valid 
-      end
+    it "should have a name" do
+      @user.name = nil
+      @user.valid?
+      expect(@user.errors.full_messages).to include("Name can't be blank")
+    end
+    it "should have an email" do
+      @user.email = nil
+      @user.valid?
+      expect(@user.errors.full_messages).to include("Email can't be blank")
+    end
+    it "should have a password" do
+      @user.password = nil
+      @user.password_confirmation = nil
+      @user.valid?
+      expect(@user.errors.full_messages).to include("Password can't be blank", "Password confirmation can't be blank")
+    end
+    it "should confirm password" do
+      @user.password = "test"
+      @user.password_confirmation = "Test"
+      @user.save
+      expect(@user.errors.full_messages).to include ("Password confirmation doesn't match Password")
+    end
+    it "password should be longer than 3 characters" do
+      @user.password = "t"
+      @user.password_confirmation = "t"
+      @user.valid?
+      expect(@user.errors.full_messages).to include "Password is too short (minimum is 3 characters)"
     end
   end
 
   describe '.authenticate_with_credentials' do
-    it 'should return the correct user if the email and password match' do
-      user = User.create!(first_name: "Anything", last_name: "Schmidt", email: "test@example.com", password: "password", password_confirmation: "password")
-
-      authUser = User.authenticate_with_credentials("test@example.com", "password")
-
-      expect(authUser).to eql(user)
+    before(:each) do
+      @user = User.new(name: "Amanda", email: "hello@gmail.com", password: "test", password_confirmation: "test")
     end
-
-    it 'should return nil if the email and password do not match' do
-      user = User.create!(first_name: "Anything", last_name: "Schmidt", email: "test@example.com", password: "password", password_confirmation: "password")
-
-      authUser = User.authenticate_with_credentials("test@example.com", "wrong")
-
-      expect(authUser).to be_nil
-    end
-
-    it 'should disregard spaces' do
-      user = User.create!(first_name: "Anything", last_name: "Schmidt", email: "test@example.com", password: "password", password_confirmation: "password")
-
-      authUser = User.authenticate_with_credentials(" test@example.com ", "password")
-
-      expect(authUser).to eql(user)
-    end
-
-    it 'should make emails case-insensitive' do
-      user = User.create!(first_name: "Anything", last_name: "Schmidt", email: "eXample@domain.COM", password: "password", password_confirmation: "password")
-
-      authUser = User.authenticate_with_credentials("EXAMPLe@DOMAIN.CoM", "password")
-
-      expect(authUser).to eql(user)
+    
+    it "should be no spaces" do
+      @user.email = " hello@gmail.com "
+      @user.valid?
+      expect(@user.errors.full_messages).to include ("Email must contain no spaces")
     end
   end
 end

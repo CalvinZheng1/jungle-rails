@@ -1,35 +1,32 @@
 require 'rails_helper'
 
 RSpec.describe Product, type: :model do
-  let(:category) { Category.create(name: 'New Category') }
-
-  subject {
-    described_class.new(name: "Anything", price_cents: 1000, quantity: 10, category_id: category.id)
-  }
-
   describe 'Validations' do
-    it "is valid with valid attributes" do
-      expect(subject).to be_valid
+
+    before do
+      @category = Category.new(name: "New_Category")
+      @product = Product.new(name: "basketball", price: 200, quantity: 12, category: @category)
     end
 
-    it "is not valid without a name" do
-      subject.name = nil
-      expect(subject).to_not be_valid
+    it "should have a name" do
+      @product.name = nil
+      @product.valid?
+      expect(@product.errors.full_messages).to include("Name can't be blank")
     end
-
-    it "is not valid without a price" do
-      subject.price_cents = nil
-      expect(subject).to_not be_valid
+    it "should have a price" do
+      @product.price_cents = nil
+      @product.valid?
+      expect(@product.errors.full_messages).to include("Price cents is not a number", "Price is not a number", "Price can't be blank")
     end
-
-    it "is not valid without a quantity" do
-      subject.quantity = nil
-      expect(subject).to_not be_valid
+    it "should have a quantity" do
+      @product.quantity = nil
+      @product.valid?
+      expect(@product.errors.full_messages).to include("Quantity can't be blank")
     end
-
-    it "is not valid without a category" do
-      subject.category_id = nil
-      expect(subject).to_not be_valid
+    it "should have a category" do
+      @product.category = nil
+      @product.valid?
+      expect(@product.errors.full_messages).to include ("Category can't be blank")
     end
   end
 end

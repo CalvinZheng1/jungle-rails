@@ -5,7 +5,6 @@ RSpec.feature "User navigates to product show page", type: :feature, js: true do
   before :each do
     @category = Category.create! name: 'Apparel'
 
-    10.times do |n|
       @category.products.create!(
         name:  Faker::Hipster.sentence(3),
         description: Faker::Hipster.paragraph(4),
@@ -13,25 +12,22 @@ RSpec.feature "User navigates to product show page", type: :feature, js: true do
         quantity: 10,
         price: 64.99
       )
+
     end
 
-    @category.products.create!(
-      name:  "Click this one",
-      description: Faker::Hipster.paragraph(4),
-      image: open_asset('apparel1.jpg'),
-      quantity: 10,
-      price: 70.00
-    )
-  end
-
-  scenario "Clicking on product navigates to show" do
-    visit root_path
-
-    page.find('.products .product:first-child a.btn').click
-
-    # commented out b/c it's for debugging only
-    save_and_open_screenshot
-
-    expect(page).to have_css '.products-show'
+    scenario "Renders product page" do
+      # ACT
+      visit root_path
+      body = page.find('.product')
+      body.hover
+      body.find('header a').click
+      sleep 5
+  
+      # DEBUG
+      #save_screenshot
+  
+      # VERIFY
+      #puts page.html
+      expect(page).to have_content 'Quantity'
   end
 end
